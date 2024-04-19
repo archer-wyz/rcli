@@ -1,32 +1,25 @@
+use crate::opts::OutputFormat;
 use anyhow::Result;
 use csv::Reader;
-use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::fs;
 
-#[derive(Debug, Deserialize, Serialize)]
-struct Player {
-    #[serde[rename = "姓名"]]
-    name: String,
-    #[serde[rename = "号码"]]
-    kit: u8,
-    #[serde[rename = "位置"]]
-    position: String,
-    #[serde[rename = "身高（英尺-英寸）"]]
-    height: String,
-    #[serde[rename = "体重（磅）"]]
-    weight: u16,
-}
-
-pub fn process_csv(input: &str, output: &str) -> Result<()> {
+pub fn process_csv(input: &str, output: String, format: OutputFormat) -> Result<()> {
     let mut reader = Reader::from_path(input)?;
-    let records = reader
-        .deserialize()
-        .map(|record| record.unwrap())
-        .collect::<Vec<Player>>();
+    let headers = reader.headers()?.clone();
+    let mut records = Vec::new();
+    for result in reader.records() {
+        let record = result?;
+        // zip 用于迭代器之间的元素配对，collect 用于将配对的元素转换为 json 对象
+        let json_value = headers.iter().zip(record.iter()).collect::<Value>();
+        records.push(json_value);
+    }
     println!("{:?}", records);
-
-    let json = serde_json::to_string(&records)?;
-    fs::write(output, json)?;
-
+    let content = match format {
+        OutputFormat::Json => serde_json::to_string(&records)?,
+        OutputFormat::Yaml => serde_yaml::to_string(&records)?,
+        OutputFormat::Toml => toml::to_string(&records)?,
+    };
+    fs::write(output, content)?;
     Ok(())
 }
