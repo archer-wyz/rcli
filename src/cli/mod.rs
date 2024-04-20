@@ -3,6 +3,9 @@ mod csv;
 mod gen_pass;
 
 use clap::Parser;
+use std::fmt;
+use std::path::Path;
+use std::str::FromStr;
 
 pub use self::{base64::*, csv::*, gen_pass::*};
 #[derive(Debug, Parser)]
@@ -18,6 +21,65 @@ pub enum SubCommand {
     Csv(CsvOpts),
     #[command(name = "genpass", about = "Generate password")]
     GenPass(GenPassOpts),
-    #[command(name = "base64", about = "Base64 encode/decode")]
-    Base64(Base64Opts),
+    #[command(subcommand)]
+    Base64(Base64SubCommand),
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum OutputFormat {
+    Json,
+    Yaml,
+    Toml,
+}
+
+fn verity_input_file(filename: &str) -> anyhow::Result<String, &'static str> {
+    if filename == "-" || Path::new(filename).exists() {
+        Ok(filename.to_string())
+    } else {
+        Err("File does not exist")
+    }
+}
+
+fn output_format_parse(format: &str) -> anyhow::Result<OutputFormat, anyhow::Error> {
+    format.parse()
+}
+
+impl From<OutputFormat> for &'static str {
+    fn from(format: OutputFormat) -> Self {
+        match format {
+            OutputFormat::Json => "json",
+            OutputFormat::Yaml => "yaml",
+            OutputFormat::Toml => "toml",
+        }
+    }
+}
+
+impl FromStr for OutputFormat {
+    type Err = anyhow::Error;
+    fn from_str(format: &str) -> anyhow::Result<Self, Self::Err> {
+        match format.to_lowercase().as_str() {
+            "json" => Ok(OutputFormat::Json),
+            "yaml" => Ok(OutputFormat::Yaml),
+            "toml" => Ok(OutputFormat::Toml),
+            v => anyhow::bail!("Unsupported output format: {}", v),
+        }
+    }
+}
+
+impl fmt::Display for OutputFormat {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", Into::<&str>::into(*self))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_verify_input_file() {
+        assert!(verity_input_file("-").is_ok());
+        assert!(verity_input_file("Cargo.toml").is_ok());
+        assert!(verity_input_file("unknown").is_err());
+    }
 }
