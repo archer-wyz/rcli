@@ -13,10 +13,10 @@ pub fn process_gen_pass(
     let mut rng = rand::thread_rng();
     let mut charset = Vec::new();
     if uppercase {
-        charset.extend_from_slice(b"ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+        charset.extend_from_slice(b"ABCDEFGHIJKLMNPQRSTUVWXYZ");
     }
     if lowercase {
-        charset.extend_from_slice(b"abcdefghijklmnopqrstuvwxyz");
+        charset.extend_from_slice(b"abcdefghijkmnopqrstuvwxyz");
     }
     if number {
         charset.extend_from_slice(b"0123456789");
@@ -32,5 +32,8 @@ pub fn process_gen_pass(
         }
         println!("{}", password);
     }
+
+    let estimate = zxcvbn::zxcvbn(&password, &[]).unwrap();
+    eprintln!("The password score: {}", estimate.score());
     Ok(())
 }
