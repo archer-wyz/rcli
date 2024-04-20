@@ -1,9 +1,13 @@
-use ::clap::Parser;
-use anyhow::Result;
+mod base64;
+mod csv;
+mod gen_pass;
+
+use clap::Parser;
 use std::fmt;
 use std::path::Path;
 use std::str::FromStr;
 
+pub use self::{base64::*, csv::*, gen_pass::*};
 #[derive(Debug, Parser)]
 #[clap(name = "rcli", version, about, long_about = None)]
 pub struct Opts {
@@ -17,55 +21,26 @@ pub enum SubCommand {
     Csv(CsvOpts),
     #[command(name = "genpass", about = "Generate password")]
     GenPass(GenPassOpts),
+    #[command(subcommand)]
+    Base64(Base64SubCommand),
 }
 
 #[derive(Debug, Clone, Copy)]
-
 pub enum OutputFormat {
     Json,
     Yaml,
     Toml,
 }
 
-#[derive(Debug, Parser)]
-pub struct CsvOpts {
-    #[arg(short, long, default_value_t = ',')]
-    pub delimiter: char,
-    #[arg(short, long, value_parser = verity_input_file)]
-    pub input: String,
-    #[arg(long, default_value_t = true)]
-    pub header: bool,
-    #[arg(short, long)]
-    pub output: Option<String>,
-    #[arg(short, long, default_value = "json", value_parser = output_format_parse)]
-    pub format: OutputFormat,
-}
-
-#[derive(Debug, Parser)]
-pub struct GenPassOpts {
-    #[arg(short, long, default_value = "16")]
-    pub length: usize,
-    #[arg(short, long, default_value = "1")]
-    pub count: usize,
-    #[arg(long, default_value_t = true)]
-    pub uppercase: bool,
-    #[arg(long, default_value_t = true)]
-    pub lowercase: bool,
-    #[arg(long, default_value_t = true)]
-    pub number: bool,
-    #[arg(long, default_value_t = true)]
-    pub symbol: bool,
-}
-
-fn verity_input_file(filename: &str) -> Result<String, &'static str> {
-    if Path::new(filename).exists() {
+fn verity_input_file(filename: &str) -> anyhow::Result<String, &'static str> {
+    if filename == "-" || Path::new(filename).exists() {
         Ok(filename.to_string())
     } else {
         Err("File does not exist")
     }
 }
 
-fn output_format_parse(format: &str) -> Result<OutputFormat, anyhow::Error> {
+fn output_format_parse(format: &str) -> anyhow::Result<OutputFormat, anyhow::Error> {
     format.parse()
 }
 
@@ -81,7 +56,7 @@ impl From<OutputFormat> for &'static str {
 
 impl FromStr for OutputFormat {
     type Err = anyhow::Error;
-    fn from_str(format: &str) -> Result<Self, Self::Err> {
+    fn from_str(format: &str) -> anyhow::Result<Self, Self::Err> {
         match format.to_lowercase().as_str() {
             "json" => Ok(OutputFormat::Json),
             "yaml" => Ok(OutputFormat::Yaml),
@@ -94,5 +69,17 @@ impl FromStr for OutputFormat {
 impl fmt::Display for OutputFormat {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", Into::<&str>::into(*self))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_verify_input_file() {
+        assert!(verity_input_file("-").is_ok());
+        assert!(verity_input_file("Cargo.toml").is_ok());
+        assert!(verity_input_file("unknown").is_err());
     }
 }
