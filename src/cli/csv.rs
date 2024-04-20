@@ -1,26 +1,9 @@
-use ::clap::Parser;
-use anyhow::Result;
+use clap::Parser;
 use std::fmt;
 use std::path::Path;
 use std::str::FromStr;
 
-#[derive(Debug, Parser)]
-#[clap(name = "rcli", version, about, long_about = None)]
-pub struct Opts {
-    #[command(subcommand)]
-    pub cmd: SubCommand,
-}
-
-#[derive(Debug, Parser)]
-pub enum SubCommand {
-    #[command(name = "csv", about = "Show CSV, or convert CSV to other formats")]
-    Csv(CsvOpts),
-    #[command(name = "genpass", about = "Generate password")]
-    GenPass(GenPassOpts),
-}
-
 #[derive(Debug, Clone, Copy)]
-
 pub enum OutputFormat {
     Json,
     Yaml,
@@ -41,23 +24,7 @@ pub struct CsvOpts {
     pub format: OutputFormat,
 }
 
-#[derive(Debug, Parser)]
-pub struct GenPassOpts {
-    #[arg(short, long, default_value = "16")]
-    pub length: usize,
-    #[arg(short, long, default_value = "1")]
-    pub count: usize,
-    #[arg(long, default_value_t = true)]
-    pub uppercase: bool,
-    #[arg(long, default_value_t = true)]
-    pub lowercase: bool,
-    #[arg(long, default_value_t = true)]
-    pub number: bool,
-    #[arg(long, default_value_t = true)]
-    pub symbol: bool,
-}
-
-fn verity_input_file(filename: &str) -> Result<String, &'static str> {
+fn verity_input_file(filename: &str) -> anyhow::Result<String, &'static str> {
     if Path::new(filename).exists() {
         Ok(filename.to_string())
     } else {
@@ -65,7 +32,7 @@ fn verity_input_file(filename: &str) -> Result<String, &'static str> {
     }
 }
 
-fn output_format_parse(format: &str) -> Result<OutputFormat, anyhow::Error> {
+fn output_format_parse(format: &str) -> anyhow::Result<OutputFormat, anyhow::Error> {
     format.parse()
 }
 
@@ -81,7 +48,7 @@ impl From<OutputFormat> for &'static str {
 
 impl FromStr for OutputFormat {
     type Err = anyhow::Error;
-    fn from_str(format: &str) -> Result<Self, Self::Err> {
+    fn from_str(format: &str) -> anyhow::Result<Self, Self::Err> {
         match format.to_lowercase().as_str() {
             "json" => Ok(OutputFormat::Json),
             "yaml" => Ok(OutputFormat::Yaml),

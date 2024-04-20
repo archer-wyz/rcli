@@ -21,6 +21,9 @@ fn main() -> anyhow::Result<()> {
             gen_pass_opts.number,
             gen_pass_opts.symbol,
         )?,
+        SubCommand::Base64(base64_opts) => {
+            println!("base64: {:?}", base64_opts)
+        }
     }
     Ok(())
 }
