@@ -15,6 +15,8 @@ pub struct Opts {
 pub enum SubCommand {
     #[command(name = "csv", about = "Show CSV, or convert CSV to other formats")]
     Csv(CsvOpts),
+    #[command(name = "genpass", about = "Generate password")]
+    GenPass(GenPassOpts),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -37,6 +39,22 @@ pub struct CsvOpts {
     pub output: Option<String>,
     #[arg(short, long, default_value = "json", value_parser = output_format_parse)]
     pub format: OutputFormat,
+}
+
+#[derive(Debug, Parser)]
+pub struct GenPassOpts {
+    #[arg(short, long, default_value = "16")]
+    pub length: usize,
+    #[arg(short, long, default_value = "1")]
+    pub count: usize,
+    #[arg(long, default_value_t = true)]
+    pub uppercase: bool,
+    #[arg(long, default_value_t = true)]
+    pub lowercase: bool,
+    #[arg(long, default_value_t = true)]
+    pub number: bool,
+    #[arg(long, default_value_t = true)]
+    pub symbol: bool,
 }
 
 fn verity_input_file(filename: &str) -> Result<String, &'static str> {
