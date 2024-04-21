@@ -1,5 +1,6 @@
 use super::data_from_input;
 use crate::cli::CryptFormat;
+use crate::process_gen_pass;
 use anyhow::Result;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
@@ -38,6 +39,13 @@ pub fn process_text_verify(
     verifier.verify(&mut reader, signature)
 }
 
+pub fn process_text_generate(format: CryptFormat) -> Result<HashMap<&'static str, Vec<u8>>> {
+    let generator: Box<dyn KeyGenerate> = match format {
+        CryptFormat::BlakeCrypt => Box::new(BlakeGenerate {}),
+    };
+    generator.generate()
+}
+
 trait TextSign {
     fn sign(&self, reader: &mut dyn Read) -> Result<String>;
 }
@@ -57,6 +65,8 @@ struct BlakeSign {
 struct BlakeVerify {
     key: [u8; 32],
 }
+
+struct BlakeGenerate {}
 
 impl BlakeVerify {
     fn new(key: [u8; 32]) -> Self {
@@ -118,12 +128,19 @@ impl TextVerify for BlakeVerify {
         Ok(hasher == signature)
     }
 }
-//
-// impl KeyGenerate for BlakeSign {
-//     fn generate(&self) -> Result<HashMap<&'static str, Vec<u8>>>{
-//         let = process_gen_pass(32, 1, true, true, true, true);
-//     }
-// }
+
+impl KeyGenerate for BlakeGenerate {
+    fn generate(&self) -> Result<HashMap<&'static str, Vec<u8>>> {
+        let keys = process_gen_pass(32, 1, true, true, true, true)?;
+        let mut key_map = HashMap::new();
+        if keys.len() == 1 {
+            key_map.insert("blake3.key", keys[0].as_bytes().to_vec());
+        } else {
+            unreachable!("Failed to generate key")
+        };
+        Ok(key_map)
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -141,5 +158,15 @@ mod tests {
         let mut reader = Cursor::new(data);
         let verified = verifier.verify(&mut reader, &signature).unwrap();
         assert!(verified);
+    }
+
+    #[test]
+    fn test_blake_generate() {
+        let generator = BlakeGenerate {};
+        let keys = generator.generate().unwrap();
+        assert_eq!(keys.len(), 1);
+        let key = keys.get("blake3.key").unwrap();
+        println!("{:?}", String::from_utf8(key.to_vec()).unwrap());
+        assert_eq!(key.len(), 32);
     }
 }

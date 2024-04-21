@@ -1,8 +1,9 @@
 use ::anyhow;
 use ::clap::Parser;
 use rcli::{
-    process_base64_decode, process_base64_encode, process_csv, process_gen_pass, process_text_sign,
-    process_text_verify, Base64SubCommand, Opts, SubCommand, TextSubCommand,
+    process_base64_decode, process_base64_encode, process_csv, process_gen_pass,
+    process_text_generate, process_text_sign, process_text_verify, Base64SubCommand, Opts,
+    SubCommand, TextSubCommand,
 };
 
 fn main() -> anyhow::Result<()> {
@@ -54,7 +55,12 @@ fn main() -> anyhow::Result<()> {
                 println!("{}", result);
             }
             TextSubCommand::Generate(gen_opts) => {
-                println!("Generate key: {:?}", gen_opts);
+                let result = process_text_generate(gen_opts.format)?;
+                for (key, value) in result {
+                    println!("{}: {:?}", key, value);
+                    let path = gen_opts.output.join(key);
+                    ::std::fs::write(path, value)?;
+                }
             }
         },
     }
