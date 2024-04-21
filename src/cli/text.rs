@@ -1,6 +1,7 @@
 use super::verity_input_file;
 use clap::Parser;
 use std::fmt;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 #[derive(Debug, Parser)]
@@ -9,6 +10,8 @@ pub enum TextSubCommand {
     Sign(SignOpts),
     #[command(about = "Verify text")]
     Verify(VerifyOpts),
+    #[command(about = "Generate key")]
+    Generate(GenerateOpts),
 }
 #[derive(Debug, Parser)]
 pub struct SignOpts {
@@ -36,9 +39,26 @@ pub struct VerifyOpts {
     pub format: CryptFormat,
 }
 
+#[derive(Debug, Parser)]
+pub struct GenerateOpts {
+    #[arg(short, long, default_value = "blake", value_parser = verify_crypt_format)]
+    pub format: CryptFormat,
+    #[arg(short, long, default_value = ".", value_parser = verity_dir_exist)]
+    pub output: PathBuf,
+}
+
 #[derive(Debug, Copy, Clone)]
 pub enum CryptFormat {
     BlakeCrypt,
+}
+
+fn verity_dir_exist(dir: &str) -> anyhow::Result<PathBuf, anyhow::Error> {
+    let dir = Path::new(dir);
+    if dir.exists() {
+        Ok(dir.to_path_buf())
+    } else {
+        Err(anyhow::anyhow!("Directory does not exist"))
+    }
 }
 
 fn verify_crypt_format(format: &str) -> anyhow::Result<CryptFormat, anyhow::Error> {

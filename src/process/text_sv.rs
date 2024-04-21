@@ -4,6 +4,7 @@ use anyhow::Result;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
 use blake3;
+use std::collections::HashMap;
 use std::fs;
 use std::io::Read;
 
@@ -43,6 +44,10 @@ trait TextSign {
 
 trait TextVerify {
     fn verify(&self, data: &mut dyn Read, signature: &str) -> Result<bool>;
+}
+
+trait KeyGenerate {
+    fn generate(&self) -> Result<HashMap<&'static str, Vec<u8>>>;
 }
 
 struct BlakeSign {
@@ -113,6 +118,12 @@ impl TextVerify for BlakeVerify {
         Ok(hasher == signature)
     }
 }
+//
+// impl KeyGenerate for BlakeSign {
+//     fn generate(&self) -> Result<HashMap<&'static str, Vec<u8>>>{
+//         let = process_gen_pass(32, 1, true, true, true, true);
+//     }
+// }
 
 #[cfg(test)]
 mod tests {

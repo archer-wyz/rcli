@@ -16,14 +16,19 @@ fn main() -> anyhow::Result<()> {
             };
             process_csv(&csv_opts.input, output, csv_opts.format)?
         }
-        SubCommand::GenPass(gen_pass_opts) => process_gen_pass(
-            gen_pass_opts.length,
-            gen_pass_opts.count,
-            gen_pass_opts.uppercase,
-            gen_pass_opts.lowercase,
-            gen_pass_opts.number,
-            gen_pass_opts.symbol,
-        )?,
+        SubCommand::GenPass(gen_pass_opts) => {
+            let passwords = process_gen_pass(
+                gen_pass_opts.length,
+                gen_pass_opts.count,
+                gen_pass_opts.uppercase,
+                gen_pass_opts.lowercase,
+                gen_pass_opts.number,
+                gen_pass_opts.symbol,
+            )?;
+            for password in passwords {
+                println!("{}", password);
+            }
+        }
         SubCommand::Base64(subcmd) => match subcmd {
             Base64SubCommand::Encode(base64_opts) => {
                 let result = process_base64_encode(&base64_opts.input, base64_opts.format)?;
@@ -47,6 +52,9 @@ fn main() -> anyhow::Result<()> {
                     verify_opts.format,
                 )?;
                 println!("{}", result);
+            }
+            TextSubCommand::Generate(gen_opts) => {
+                println!("Generate key: {:?}", gen_opts);
             }
         },
     }
