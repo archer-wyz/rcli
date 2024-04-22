@@ -50,6 +50,7 @@ pub struct GenerateOpts {
 #[derive(Debug, Copy, Clone)]
 pub enum CryptFormat {
     BlakeCrypt,
+    Ed25519Crypt,
 }
 
 fn verity_dir_exist(dir: &str) -> anyhow::Result<PathBuf, anyhow::Error> {
@@ -70,6 +71,7 @@ impl FromStr for CryptFormat {
     fn from_str(format: &str) -> anyhow::Result<Self, Self::Err> {
         match format.to_lowercase().as_str() {
             "blake" => Ok(CryptFormat::BlakeCrypt),
+            "ed25519" => Ok(CryptFormat::Ed25519Crypt),
             v => unreachable!("Unsupported format: {:?}", v),
         }
     }
@@ -79,6 +81,7 @@ impl fmt::Display for CryptFormat {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             CryptFormat::BlakeCrypt => write!(f, "blake"),
+            CryptFormat::Ed25519Crypt => write!(f, "ed25519"),
         }
     }
 }
@@ -87,6 +90,7 @@ impl From<CryptFormat> for &'static str {
     fn from(format: CryptFormat) -> Self {
         match format {
             CryptFormat::BlakeCrypt => "blake",
+            CryptFormat::Ed25519Crypt => "ed25519",
         }
     }
 }

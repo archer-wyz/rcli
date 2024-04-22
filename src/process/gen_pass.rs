@@ -1,6 +1,6 @@
 use ::rand;
 use anyhow::Result;
-use rand::prelude::IndexedRandom;
+use rand::seq::SliceRandom;
 
 pub fn process_gen_pass(
     length: usize,
