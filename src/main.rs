@@ -7,7 +7,8 @@ use rcli::{
     TextSubCommand,
 };
 
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     let opts: Opts = Opts::parse();
     tracing_subscriber::fmt().init();
     match opts.cmd {
@@ -20,12 +21,15 @@ fn main() -> anyhow::Result<()> {
             process_csv(&csv_opts.input, output, csv_opts.format)?
         }
         SubCommand::Http(subcmd) => match subcmd {
-            HttpSubCommand::Serve(http_opts) => process_http_serve(
-                &http_opts.dir,
-                &http_opts.address,
-                http_opts.port,
-                http_opts.security,
-            )?,
+            HttpSubCommand::Serve(http_opts) => {
+                process_http_serve(
+                    http_opts.dir,
+                    &http_opts.address,
+                    http_opts.port,
+                    http_opts.security,
+                )
+                .await?
+            }
         },
         SubCommand::GenPass(gen_pass_opts) => {
             let passwords = process_gen_pass(
