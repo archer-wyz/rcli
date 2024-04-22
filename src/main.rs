@@ -2,8 +2,8 @@ use ::anyhow;
 use ::clap::Parser;
 use rcli::{
     process_base64_decode, process_base64_encode, process_csv, process_gen_pass,
-    process_text_generate, process_text_sign, process_text_verify, Base64SubCommand, Opts,
-    SubCommand, TextSubCommand,
+    process_text_decrypt, process_text_encrypt, process_text_generate, process_text_sign,
+    process_text_verify, Base64SubCommand, Opts, SubCommand, TextSubCommand,
 };
 
 fn main() -> anyhow::Result<()> {
@@ -63,10 +63,23 @@ fn main() -> anyhow::Result<()> {
                 }
             }
             TextSubCommand::Encrypt(encrypt_opts) => {
-                println!("Encrypt: {:?}", encrypt_opts);
+                let result = process_text_encrypt(
+                    &encrypt_opts.input,
+                    &encrypt_opts.key,
+                    encrypt_opts.format,
+                )?;
+                println!("{}", result);
             }
             TextSubCommand::Decrypt(decrypt_opts) => {
-                println!("Decrypt: {:?}", decrypt_opts);
+                let result = process_text_decrypt(
+                    &decrypt_opts.input,
+                    &decrypt_opts.key,
+                    decrypt_opts.format,
+                )?;
+                let result = String::from_utf8(result).map_err(|_| {
+                    anyhow::anyhow!("Decrypt successfully, but the payloads exist invalid UTF-8")
+                })?;
+                println!("{}", result);
             }
         },
     }

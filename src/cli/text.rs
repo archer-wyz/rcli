@@ -26,7 +26,7 @@ pub struct SignOpts {
     #[arg(short, long)]
     pub key: String,
     #[arg(short, long, default_value = "blake", value_parser = verify_crypt_format)]
-    pub format: SigOrVerFormat,
+    pub format: CryptFormat,
 }
 
 #[derive(Debug, Parser)]
@@ -39,14 +39,14 @@ pub struct VerifyOpts {
     pub key: String,
     #[arg(short, long)]
     pub signature: String,
-    #[arg(short, long, default_value = "blake", value_parser = verify_sig_or_ver_format)]
-    pub format: SigOrVerFormat,
+    #[arg(short, long, default_value = "blake", value_parser = verify_crypt_format)]
+    pub format: CryptFormat,
 }
 
 #[derive(Debug, Parser)]
 pub struct GenerateOpts {
-    #[arg(short, long, default_value = "blake", value_parser = verify_sig_or_ver_format)]
-    pub format: SigOrVerFormat,
+    #[arg(short, long, default_value = "blake", value_parser = verify_crypt_format)]
+    pub format: CryptFormat,
     #[arg(short, long, default_value = ".", value_parser = verity_dir_exist)]
     pub output: PathBuf,
 }
@@ -76,14 +76,10 @@ pub struct DecryptOpts {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub enum SigOrVerFormat {
-    Blake,
-    Ed25519,
-}
-
-#[derive(Debug, Copy, Clone)]
 pub enum CryptFormat {
     ChaCha20Poly1305,
+    Blake,
+    Ed25519,
 }
 
 fn verity_dir_exist(dir: &str) -> anyhow::Result<PathBuf, anyhow::Error> {
@@ -93,10 +89,6 @@ fn verity_dir_exist(dir: &str) -> anyhow::Result<PathBuf, anyhow::Error> {
     } else {
         Err(anyhow::anyhow!("Directory does not exist"))
     }
-}
-
-fn verify_sig_or_ver_format(format: &str) -> anyhow::Result<SigOrVerFormat, anyhow::Error> {
-    format.parse()
 }
 
 fn verify_crypt_format(format: &str) -> anyhow::Result<CryptFormat, anyhow::Error> {
@@ -118,6 +110,8 @@ impl fmt::Display for CryptFormat {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             CryptFormat::ChaCha20Poly1305 => write!(f, "chacha20poly1305"),
+            CryptFormat::Blake => write!(f, "blake"),
+            CryptFormat::Ed25519 => write!(f, "ed25519"),
         }
     }
 }
@@ -126,35 +120,8 @@ impl From<CryptFormat> for &'static str {
     fn from(format: CryptFormat) -> Self {
         match format {
             CryptFormat::ChaCha20Poly1305 => "chacha20poly1305",
-        }
-    }
-}
-
-impl FromStr for SigOrVerFormat {
-    type Err = anyhow::Error;
-    fn from_str(format: &str) -> anyhow::Result<Self, Self::Err> {
-        match format.to_lowercase().as_str() {
-            "blake" => Ok(SigOrVerFormat::Blake),
-            "ed25519" => Ok(SigOrVerFormat::Ed25519),
-            v => unreachable!("Unsupported format: {:?}", v),
-        }
-    }
-}
-
-impl fmt::Display for SigOrVerFormat {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            SigOrVerFormat::Blake => write!(f, "blake"),
-            SigOrVerFormat::Ed25519 => write!(f, "ed25519"),
-        }
-    }
-}
-
-impl From<SigOrVerFormat> for &'static str {
-    fn from(format: SigOrVerFormat) -> Self {
-        match format {
-            SigOrVerFormat::Blake => "blake",
-            SigOrVerFormat::Ed25519 => "ed25519",
+            CryptFormat::Blake => "blake",
+            CryptFormat::Ed25519 => "ed25519",
         }
     }
 }
