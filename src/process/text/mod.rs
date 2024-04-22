@@ -1,4 +1,4 @@
-use crate::cli::CryptFormat;
+use crate::cli::SigOrVerFormat;
 use anyhow::Result;
 use std::collections::HashMap;
 use std::io::Read;
@@ -19,17 +19,17 @@ pub trait KeyGenerate {
 }
 
 pub fn create_signer(
-    format: CryptFormat,
+    format: SigOrVerFormat,
     key: Vec<u8>,
 ) -> Result<Box<dyn TextSign>, anyhow::Error> {
     match format {
-        CryptFormat::BlakeCrypt => {
+        SigOrVerFormat::Blake => {
             let key = key
                 .try_into()
                 .map_err(|_| anyhow::anyhow!("Blake's key must be exactly 32 bytes long"))?;
             Ok(Box::new(blake::BlakeSign::new(key)))
         }
-        CryptFormat::Ed25519Crypt => {
+        SigOrVerFormat::Ed25519 => {
             let key = key
                 .try_into()
                 .map_err(|_| anyhow::anyhow!("Ed25519's key must be exactly 32 bytes long"))?;
@@ -39,17 +39,17 @@ pub fn create_signer(
 }
 
 pub fn create_verifier(
-    format: CryptFormat,
+    format: SigOrVerFormat,
     key: Vec<u8>,
 ) -> Result<Box<dyn TextVerify>, anyhow::Error> {
     match format {
-        CryptFormat::BlakeCrypt => {
+        SigOrVerFormat::Blake => {
             let key = key
                 .try_into()
                 .map_err(|_| anyhow::anyhow!("Blake's key must be exactly 32 bytes long"))?;
             Ok(Box::new(blake::BlakeVerify::new(key)))
         }
-        CryptFormat::Ed25519Crypt => {
+        SigOrVerFormat::Ed25519 => {
             let key = key
                 .try_into()
                 .map_err(|_| anyhow::anyhow!("Ed25519's key must be exactly 32 bytes long"))?;
@@ -58,9 +58,9 @@ pub fn create_verifier(
     }
 }
 
-pub fn create_generator(format: CryptFormat) -> Result<Box<dyn KeyGenerate>, anyhow::Error> {
+pub fn create_generator(format: SigOrVerFormat) -> Result<Box<dyn KeyGenerate>, anyhow::Error> {
     match format {
-        CryptFormat::BlakeCrypt => Ok(Box::new(blake::BlakeGenerate {})),
-        CryptFormat::Ed25519Crypt => Ok(Box::new(ed25519::Ed25519Gen::new())),
+        SigOrVerFormat::Blake => Ok(Box::new(blake::BlakeGenerate {})),
+        SigOrVerFormat::Ed25519 => Ok(Box::new(ed25519::Ed25519Gen::new())),
     }
 }

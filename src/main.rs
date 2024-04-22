@@ -62,6 +62,12 @@ fn main() -> anyhow::Result<()> {
                     ::std::fs::write(path, value)?;
                 }
             }
+            TextSubCommand::Encrypt(encrypt_opts) => {
+                println!("Encrypt: {:?}", encrypt_opts);
+            }
+            TextSubCommand::Decrypt(decrypt_opts) => {
+                println!("Decrypt: {:?}", decrypt_opts);
+            }
         },
     }
     Ok(())
