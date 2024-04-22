@@ -6,7 +6,7 @@ mod text;
 
 use clap::Parser;
 use std::fmt;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 pub use self::{base64::*, csv::*, gen_pass::*, http::*, text::*};
@@ -43,6 +43,15 @@ fn verity_input_file(filename: &str) -> anyhow::Result<String, &'static str> {
         Ok(filename.to_string())
     } else {
         Err("File does not exist")
+    }
+}
+
+fn verity_dir_exist(dir: &str) -> anyhow::Result<PathBuf, anyhow::Error> {
+    let dir = Path::new(dir);
+    if dir.exists() {
+        Ok(dir.to_path_buf())
+    } else {
+        Err(anyhow::anyhow!("Directory does not exist"))
     }
 }
 

@@ -1,7 +1,7 @@
-use super::verity_input_file;
+use super::{verity_dir_exist, verity_input_file};
 use clap::Parser;
 use std::fmt;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::str::FromStr;
 
 #[derive(Debug, Parser)]
@@ -80,15 +80,6 @@ pub enum CryptFormat {
     ChaCha20Poly1305,
     Blake,
     Ed25519,
-}
-
-fn verity_dir_exist(dir: &str) -> anyhow::Result<PathBuf, anyhow::Error> {
-    let dir = Path::new(dir);
-    if dir.exists() {
-        Ok(dir.to_path_buf())
-    } else {
-        Err(anyhow::anyhow!("Directory does not exist"))
-    }
 }
 
 fn verify_crypt_format(format: &str) -> anyhow::Result<CryptFormat, anyhow::Error> {

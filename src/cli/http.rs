@@ -1,4 +1,6 @@
+use super::verity_dir_exist;
 use clap::Parser;
+use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
 pub enum HttpSubCommand {
@@ -8,7 +10,11 @@ pub enum HttpSubCommand {
 
 #[derive(Debug, Parser)]
 pub struct HttpOpts {
-    #[arg(short, long, default_value = "")]
+    #[arg(short, long, default_value_t = true)]
+    pub security: bool,
+    #[arg(short, long, default_value = ".", value_parser = verity_dir_exist)]
+    pub dir: PathBuf,
+    #[arg(short, long, default_value = "0.0.0.0")]
     pub address: String,
     #[arg(short, long, default_value = "8080", value_parser = parse_port)]
     pub port: u32,
