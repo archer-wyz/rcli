@@ -1,6 +1,6 @@
 use ::rand;
 use anyhow::Result;
-use rand::prelude::IndexedRandom;
+use rand::seq::SliceRandom;
 
 pub fn process_gen_pass(
     length: usize,
@@ -9,7 +9,7 @@ pub fn process_gen_pass(
     lowercase: bool,
     number: bool,
     symbol: bool,
-) -> Result<()> {
+) -> Result<Vec<String>> {
     let mut rng = rand::thread_rng();
     let mut charset = Vec::new();
     if uppercase {
@@ -24,13 +24,14 @@ pub fn process_gen_pass(
     if symbol {
         charset.extend_from_slice(b"!@#$%^&*()-_=+");
     }
-    let mut password = String::with_capacity(length);
+    let mut passwords = Vec::with_capacity(count);
     for _ in 0..count {
+        let mut password = String::with_capacity(length);
         for _ in 0..length {
             let c = charset.choose(&mut rng).expect("chars want be empty");
             password.push(*c as char);
         }
-        println!("{}", password);
+        passwords.push(password);
     }
-    Ok(())
+    Ok(passwords)
 }
