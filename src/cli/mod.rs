@@ -1,6 +1,7 @@
 mod base64;
 mod csv;
 mod gen_pass;
+mod http;
 mod text;
 
 use clap::Parser;
@@ -8,7 +9,7 @@ use std::fmt;
 use std::path::Path;
 use std::str::FromStr;
 
-pub use self::{base64::*, csv::*, gen_pass::*, text::*};
+pub use self::{base64::*, csv::*, gen_pass::*, http::*, text::*};
 #[derive(Debug, Parser)]
 #[clap(name = "rcli", version, about, long_about = None)]
 pub struct Opts {
@@ -26,6 +27,8 @@ pub enum SubCommand {
     Base64(Base64SubCommand),
     #[command(subcommand)]
     Text(TextSubCommand),
+    #[command(subcommand)]
+    Http(HttpSubCommand),
 }
 
 #[derive(Debug, Clone, Copy)]

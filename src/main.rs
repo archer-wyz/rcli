@@ -3,7 +3,7 @@ use ::clap::Parser;
 use rcli::{
     process_base64_decode, process_base64_encode, process_csv, process_gen_pass,
     process_text_decrypt, process_text_encrypt, process_text_generate, process_text_sign,
-    process_text_verify, Base64SubCommand, Opts, SubCommand, TextSubCommand,
+    process_text_verify, Base64SubCommand, HttpSubCommand, Opts, SubCommand, TextSubCommand,
 };
 
 fn main() -> anyhow::Result<()> {
@@ -17,6 +17,11 @@ fn main() -> anyhow::Result<()> {
             };
             process_csv(&csv_opts.input, output, csv_opts.format)?
         }
+        SubCommand::Http(subcmd) => match subcmd {
+            HttpSubCommand::Serve(http_opts) => {
+                println!("http serve: {:?}", http_opts)
+            }
+        },
         SubCommand::GenPass(gen_pass_opts) => {
             let passwords = process_gen_pass(
                 gen_pass_opts.length,
