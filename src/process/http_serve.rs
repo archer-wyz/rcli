@@ -7,6 +7,7 @@ use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::Arc;
+use tower_http::services::ServeDir;
 use tracing::info;
 
 #[derive(Debug)]
@@ -22,9 +23,17 @@ pub async fn process_http_serve(
 ) -> Result<()> {
     let address = format!("{}:{}", address, port);
     info!("http serve: {:?} {} {}", path, address, security);
-    let state = HttpServerState { path };
+    let state = HttpServerState { path: path.clone() };
+    let dir_service = ServeDir::new(path)
+        .append_index_html_on_directories(true)
+        .precompressed_br()
+        .precompressed_gzip()
+        .precompressed_deflate()
+        .precompressed_zstd();
+
     let router = Router::new()
-        .route("/*path", get(file_handler))
+        .route("/self/*path", get(file_handler))
+        .nest_service("/tower", dir_service)
         .with_state(Arc::new(state));
     let addr = SocketAddr::from_str(&address).map_err(|_| anyhow::anyhow!("Invalid address"))?;
     let listener = tokio::net::TcpListener::bind(addr).await?;
@@ -52,5 +61,20 @@ async fn file_handler(
             StatusCode::INTERNAL_SERVER_ERROR,
             format!("Error reading file: {}", e),
         ),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_file_handler() {
+        let state = Arc::new(HttpServerState {
+            path: PathBuf::from("."),
+        });
+        let response = file_handler(State(state), Path("Cargo.toml".to_string())).await;
+        assert_eq!(response.0, StatusCode::OK);
+        assert!(response.1.contains("tower-http"));
     }
 }
