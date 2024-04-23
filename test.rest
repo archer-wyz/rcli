@@ -1,0 +1,5 @@
+### use tower
+GET http://localhost:8080/tower/fixtures/ed25519_test/ed25519.pk
+
+### use self
+GET http://localhost:8080/self/fixtures/ed25519_test/ed25519.pk
