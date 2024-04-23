@@ -5,6 +5,7 @@ pub mod base64_ed;
 pub mod csv_convert;
 pub mod gen_pass;
 pub mod http_serve;
+pub(crate) mod jwt;
 mod text;
 pub mod text_op;
 
