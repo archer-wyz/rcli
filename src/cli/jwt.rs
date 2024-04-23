@@ -34,6 +34,10 @@ fn verify_jwt_alg(value: &str) -> Result<JwtAlg> {
 pub struct JwtVerifyOpts {
     #[arg(short, long)]
     pub token: String,
+    #[arg(long, default_value = "HS256", value_parser = verify_jwt_alg)]
+    pub alg: JwtAlg,
+    #[arg(long, default_value = "y^sf+rIpfi^")]
+    pub key: String,
 }
 
 #[derive(Clone, Copy, Debug)]
