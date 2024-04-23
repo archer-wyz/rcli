@@ -2,14 +2,16 @@ mod base64;
 mod csv;
 mod gen_pass;
 mod http;
+mod jwt;
 mod text;
 
+use chrono::Duration;
 use clap::Parser;
 use std::fmt;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-pub use self::{base64::*, csv::*, gen_pass::*, http::*, text::*};
+pub use self::{base64::*, csv::*, gen_pass::*, http::*, jwt::*, text::*};
 #[derive(Debug, Parser)]
 #[clap(name = "rcli", version, about, long_about = None)]
 pub struct Opts {
@@ -29,6 +31,8 @@ pub enum SubCommand {
     Text(TextSubCommand),
     #[command(subcommand)]
     Http(HttpSubCommand),
+    #[command(subcommand)]
+    Jwt(JwtSubCommand),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -52,6 +56,36 @@ fn verity_dir_exist(dir: &str) -> anyhow::Result<PathBuf, anyhow::Error> {
         Ok(dir.to_path_buf())
     } else {
         Err(anyhow::anyhow!("Directory does not exist"))
+    }
+}
+
+fn verify_duration(duration: &str) -> anyhow::Result<Duration, anyhow::Error> {
+    let len = duration.len();
+    if len < 2 {
+        return Err(anyhow::anyhow!("Invalid duration {:?}", duration));
+    }
+
+    let num_part = &duration[..len - 1];
+    let unit = &duration[len - 1..];
+
+    let num = num_part
+        .parse::<i64>()
+        .map_err(|_| anyhow::anyhow!("Invalid duration {:?}", duration))?;
+    match unit {
+        "d" => Ok(Duration::days(num)),
+        "h" => Ok(Duration::hours(num)),
+        "m" => Ok(Duration::minutes(num)),
+        "s" => Ok(Duration::seconds(num)),
+        _ => Err(anyhow::anyhow!("Invalid duration {:?}", duration)),
+    }
+}
+
+fn verify_key_values(values: &str) -> anyhow::Result<(String, String), anyhow::Error> {
+    let mut parts = values.splitn(2, '=');
+    if let (Some(key), Some(value)) = (parts.next(), parts.next()) {
+        Ok((key.to_string(), value.to_string()))
+    } else {
+        Err(anyhow::anyhow!("Invalid key-value pair: {}", values))
     }
 }
 

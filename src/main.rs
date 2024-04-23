@@ -3,8 +3,8 @@ use ::clap::Parser;
 use rcli::{
     process_base64_decode, process_base64_encode, process_csv, process_gen_pass,
     process_http_serve, process_text_decrypt, process_text_encrypt, process_text_generate,
-    process_text_sign, process_text_verify, Base64SubCommand, HttpSubCommand, Opts, SubCommand,
-    TextSubCommand,
+    process_text_sign, process_text_verify, Base64SubCommand, HttpSubCommand, JwtSubCommand, Opts,
+    SubCommand, TextSubCommand,
 };
 
 #[tokio::main]
@@ -94,6 +94,14 @@ async fn main() -> anyhow::Result<()> {
                     anyhow::anyhow!("Decrypt successfully, but the payloads exist invalid UTF-8")
                 })?;
                 println!("{}", result);
+            }
+        },
+        SubCommand::Jwt(cmd) => match cmd {
+            JwtSubCommand::Sign(sign_opts) => {
+                println!("{:?}", sign_opts);
+            }
+            JwtSubCommand::Verify(verify_opts) => {
+                println!("{:?}", verify_opts);
             }
         },
     }
