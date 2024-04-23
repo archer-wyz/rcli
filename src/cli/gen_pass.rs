@@ -1,3 +1,4 @@
+use crate::{process_gen_pass, CmdExector};
 use clap::Parser;
 
 #[derive(Debug, Parser)]
@@ -14,4 +15,21 @@ pub struct GenPassOpts {
     pub number: bool,
     #[arg(long, default_value_t = true)]
     pub symbol: bool,
+}
+
+impl CmdExector for GenPassOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let passwords = process_gen_pass(
+            self.length,
+            self.count,
+            self.uppercase,
+            self.lowercase,
+            self.number,
+            self.symbol,
+        )?;
+        for password in passwords {
+            println!("{}", password);
+        }
+        Ok(())
+    }
 }

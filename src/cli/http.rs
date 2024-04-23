@@ -1,4 +1,5 @@
 use super::verity_dir_exist;
+use crate::{process_http_serve, CmdExector};
 use clap::Parser;
 use std::path::PathBuf;
 
@@ -6,6 +7,15 @@ use std::path::PathBuf;
 pub enum HttpSubCommand {
     #[command(about = "Serv the http")]
     Serve(HttpOpts),
+}
+
+impl CmdExector for HttpSubCommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            HttpSubCommand::Serve(opts) => opts.execute().await?,
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug, Parser)]
@@ -30,5 +40,11 @@ fn parse_port(port: &str) -> anyhow::Result<u32, &'static str> {
             }
         }
         Err(_) => Err("Port must be a number"),
+    }
+}
+
+impl CmdExector for HttpOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        process_http_serve(self.dir, &self.address, self.port, self.security).await
     }
 }

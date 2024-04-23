@@ -5,6 +5,7 @@ mod http;
 mod jwt;
 mod text;
 
+use crate::CmdExector;
 use chrono::Duration;
 use clap::Parser;
 use std::fmt;
@@ -25,14 +26,27 @@ pub enum SubCommand {
     Csv(CsvOpts),
     #[command(name = "genpass", about = "Generate password")]
     GenPass(GenPassOpts),
-    #[command(subcommand)]
+    #[command(subcommand, about = "Base64 encode/decode")]
     Base64(Base64SubCommand),
-    #[command(subcommand)]
+    #[command(subcommand, about = "Text operations")]
     Text(TextSubCommand),
-    #[command(subcommand)]
+    #[command(subcommand, about = "HTTP server")]
     Http(HttpSubCommand),
-    #[command(subcommand)]
+    #[command(subcommand, about = "JWT operations")]
     Jwt(JwtSubCommand),
+}
+
+impl CmdExector for SubCommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            SubCommand::Csv(opts) => Ok(opts.execute().await?),
+            SubCommand::GenPass(opts) => Ok(opts.execute().await?),
+            SubCommand::Base64(opts) => Ok(opts.execute().await?),
+            SubCommand::Text(opts) => Ok(opts.execute().await?),
+            SubCommand::Http(opts) => Ok(opts.execute().await?),
+            SubCommand::Jwt(opts) => Ok(opts.execute().await?),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]

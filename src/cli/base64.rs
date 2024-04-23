@@ -1,4 +1,5 @@
 use super::verity_input_file;
+use crate::{process_base64_decode, process_base64_encode, CmdExector};
 use anyhow;
 use clap::Parser;
 use std::fmt;
@@ -10,6 +11,22 @@ pub enum Base64SubCommand {
     Encode(Base64EncodeOpts),
     #[command(name = "decode", about = "Base64 decode")]
     Decode(Base64DecodeOpts),
+}
+
+impl CmdExector for Base64SubCommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            Base64SubCommand::Encode(opts) => {
+                let result = process_base64_encode(&opts.input, opts.format)?;
+                println!("{}", result);
+            }
+            Base64SubCommand::Decode(opts) => {
+                let result = process_base64_decode(&opts.input, opts.format)?;
+                println!("{}", result);
+            }
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug, Parser)]

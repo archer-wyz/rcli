@@ -1,4 +1,5 @@
 use super::verify_duration;
+use crate::{process_jwt_sign, process_jwt_verify, CmdExector};
 use anyhow::Result;
 use chrono::Duration;
 use clap::Parser;
@@ -10,6 +11,15 @@ pub enum JwtSubCommand {
     Sign(JwtSignOpts),
     #[command(about = "Verify JWT")]
     Verify(JwtVerifyOpts),
+}
+
+impl CmdExector for JwtSubCommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            JwtSubCommand::Sign(opts) => Ok(opts.execute().await?),
+            JwtSubCommand::Verify(opts) => Ok(opts.execute().await?),
+        }
+    }
 }
 
 #[derive(Debug, Parser)]
@@ -26,6 +36,14 @@ pub struct JwtSignOpts {
     pub key: String,
 }
 
+impl CmdExector for JwtSignOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let sign = process_jwt_sign(&self.sub, &self.aud, self.exp, self.alg, &self.key)?;
+        println!("{}", sign);
+        Ok(())
+    }
+}
+
 fn verify_jwt_alg(value: &str) -> Result<JwtAlg> {
     value.parse()
 }
@@ -38,6 +56,14 @@ pub struct JwtVerifyOpts {
     pub alg: JwtAlg,
     #[arg(long, default_value = "y^sf+rIpfi^")]
     pub key: String,
+}
+
+impl CmdExector for JwtVerifyOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let result = process_jwt_verify(&self.token, self.alg, &self.key)?;
+        println!("{}", result);
+        Ok(())
+    }
 }
 
 #[derive(Clone, Copy, Debug)]

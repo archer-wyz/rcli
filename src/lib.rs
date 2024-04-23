@@ -13,3 +13,8 @@ pub use process::text_op::{
     process_text_decrypt, process_text_encrypt, process_text_generate, process_text_sign,
     process_text_verify,
 };
+
+#[allow(async_fn_in_trait)]
+pub trait CmdExector {
+    async fn execute(self) -> anyhow::Result<()>;
+}
