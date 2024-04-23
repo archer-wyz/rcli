@@ -80,14 +80,14 @@ fn verify_duration(duration: &str) -> anyhow::Result<Duration, anyhow::Error> {
     }
 }
 
-fn verify_key_values(values: &str) -> anyhow::Result<(String, String), anyhow::Error> {
-    let mut parts = values.splitn(2, '=');
-    if let (Some(key), Some(value)) = (parts.next(), parts.next()) {
-        Ok((key.to_string(), value.to_string()))
-    } else {
-        Err(anyhow::anyhow!("Invalid key-value pair: {}", values))
-    }
-}
+// fn verify_key_values(values: &str) -> anyhow::Result<(String, String), anyhow::Error> {
+//     let mut parts = values.splitn(2, '=');
+//     if let (Some(key), Some(value)) = (parts.next(), parts.next()) {
+//         Ok((key.to_string(), value.to_string()))
+//     } else {
+//         Err(anyhow::anyhow!("Invalid key-value pair: {}", values))
+//     }
+// }
 
 fn output_format_parse(format: &str) -> anyhow::Result<OutputFormat, anyhow::Error> {
     format.parse()

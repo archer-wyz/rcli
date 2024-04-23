@@ -1,4 +1,4 @@
-use super::{verify_duration, verify_key_values};
+use super::verify_duration;
 use anyhow::Result;
 use chrono::Duration;
 use clap::Parser;
@@ -22,8 +22,8 @@ pub struct JwtSignOpts {
     pub exp: Duration,
     #[arg(long, default_value = "HS256", value_parser = verify_jwt_alg)]
     pub alg: JwtAlg,
-    #[arg(long, value_parser = verify_key_values)]
-    pub header: Vec<(String, String)>,
+    #[arg(long, default_value = "y^sf+rIpfi^")]
+    pub key: String,
 }
 
 fn verify_jwt_alg(value: &str) -> Result<JwtAlg> {
@@ -39,6 +39,7 @@ pub struct JwtVerifyOpts {
 #[derive(Clone, Copy, Debug)]
 pub enum JwtAlg {
     HS256,
+    HS384,
 }
 
 impl FromStr for JwtAlg {
@@ -46,6 +47,7 @@ impl FromStr for JwtAlg {
     fn from_str(s: &str) -> Result<Self> {
         match s {
             "HS256" => Ok(Self::HS256),
+            "HS384" => Ok(Self::HS384),
             _ => Err(anyhow::anyhow!("Invalid JWT algorithm")),
         }
     }
@@ -55,6 +57,7 @@ impl std::fmt::Display for JwtAlg {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             JwtAlg::HS256 => write!(f, "HS256"),
+            JwtAlg::HS384 => write!(f, "HS384"),
         }
     }
 }
@@ -63,6 +66,7 @@ impl From<JwtAlg> for &'static str {
     fn from(alg: JwtAlg) -> Self {
         match alg {
             JwtAlg::HS256 => "HS256",
+            JwtAlg::HS384 => "HS384",
         }
     }
 }
