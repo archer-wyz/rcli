@@ -3,23 +3,16 @@ use crate::{process_jwt_sign, process_jwt_verify, CmdExector};
 use anyhow::Result;
 use chrono::Duration;
 use clap::Parser;
+use enum_dispatch::enum_dispatch;
 use std::str::FromStr;
 
 #[derive(Debug, Parser)]
+#[enum_dispatch(CmdExector)]
 pub enum JwtSubCommand {
     #[command(about = "Sign JWT")]
     Sign(JwtSignOpts),
     #[command(about = "Verify JWT")]
     Verify(JwtVerifyOpts),
-}
-
-impl CmdExector for JwtSubCommand {
-    async fn execute(self) -> anyhow::Result<()> {
-        match self {
-            JwtSubCommand::Sign(opts) => Ok(opts.execute().await?),
-            JwtSubCommand::Verify(opts) => Ok(opts.execute().await?),
-        }
-    }
 }
 
 #[derive(Debug, Parser)]

@@ -4,11 +4,13 @@ use crate::{
     process_text_verify, CmdExector,
 };
 use clap::Parser;
+use enum_dispatch::enum_dispatch;
 use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 
 #[derive(Debug, Parser)]
+#[enum_dispatch(CmdExector)]
 pub enum TextSubCommand {
     #[command(about = "Sign text")]
     Sign(SignOpts),
@@ -21,18 +23,18 @@ pub enum TextSubCommand {
     #[command(about = "Decrypt text")]
     Decrypt(DecryptOpts),
 }
-
-impl CmdExector for TextSubCommand {
-    async fn execute(self) -> anyhow::Result<()> {
-        match self {
-            TextSubCommand::Sign(opts) => Ok(opts.execute().await?),
-            TextSubCommand::Verify(opts) => Ok(opts.execute().await?),
-            TextSubCommand::Generate(opts) => Ok(opts.execute().await?),
-            TextSubCommand::Encrypt(opts) => Ok(opts.execute().await?),
-            TextSubCommand::Decrypt(opts) => Ok(opts.execute().await?),
-        }
-    }
-}
+//
+// impl CmdExector for TextSubCommand {
+//     async fn execute(self) -> anyhow::Result<()> {
+//         match self {
+//             TextSubCommand::Sign(opts) => Ok(opts.execute().await?),
+//             TextSubCommand::Verify(opts) => Ok(opts.execute().await?),
+//             TextSubCommand::Generate(opts) => Ok(opts.execute().await?),
+//             TextSubCommand::Encrypt(opts) => Ok(opts.execute().await?),
+//             TextSubCommand::Decrypt(opts) => Ok(opts.execute().await?),
+//         }
+//     }
+// }
 
 #[derive(Debug, Parser)]
 pub struct SignOpts {

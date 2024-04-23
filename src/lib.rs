@@ -1,9 +1,8 @@
 pub mod cli;
 mod process;
 
-pub use cli::{
-    Base64SubCommand, CsvOpts, HttpSubCommand, JwtSubCommand, Opts, SubCommand, TextSubCommand,
-};
+pub use cli::*;
+use enum_dispatch::enum_dispatch;
 pub use process::base64_ed::{process_base64_decode, process_base64_encode};
 pub use process::csv_convert::process_csv;
 pub use process::gen_pass::process_gen_pass;
@@ -15,6 +14,7 @@ pub use process::text_op::{
 };
 
 #[allow(async_fn_in_trait)]
+#[enum_dispatch]
 pub trait CmdExector {
     async fn execute(self) -> anyhow::Result<()>;
 }

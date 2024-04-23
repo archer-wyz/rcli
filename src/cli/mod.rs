@@ -5,9 +5,9 @@ mod http;
 mod jwt;
 mod text;
 
-use crate::CmdExector;
 use chrono::Duration;
 use clap::Parser;
+use enum_dispatch::enum_dispatch;
 use std::fmt;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -21,6 +21,7 @@ pub struct Opts {
 }
 
 #[derive(Debug, Parser)]
+#[enum_dispatch(CmdExector)]
 pub enum SubCommand {
     #[command(name = "csv", about = "Show CSV, or convert CSV to other formats")]
     Csv(CsvOpts),
@@ -34,19 +35,6 @@ pub enum SubCommand {
     Http(HttpSubCommand),
     #[command(subcommand, about = "JWT operations")]
     Jwt(JwtSubCommand),
-}
-
-impl CmdExector for SubCommand {
-    async fn execute(self) -> anyhow::Result<()> {
-        match self {
-            SubCommand::Csv(opts) => Ok(opts.execute().await?),
-            SubCommand::GenPass(opts) => Ok(opts.execute().await?),
-            SubCommand::Base64(opts) => Ok(opts.execute().await?),
-            SubCommand::Text(opts) => Ok(opts.execute().await?),
-            SubCommand::Http(opts) => Ok(opts.execute().await?),
-            SubCommand::Jwt(opts) => Ok(opts.execute().await?),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Copy)]
