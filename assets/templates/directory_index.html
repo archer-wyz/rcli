@@ -9,7 +9,7 @@
 <h1>Contents of {{ directory_name }}</h1>
 <ul>
     {% for file in files %}
-    <li><a href="{{ directory_name }}/{{ file }}">{{ file }}</a></li>
+    <li><a href="{{ last_dir }}{{ file }}">{{ file }}</a></li>
     {% endfor %}
 </ul>
 </body>

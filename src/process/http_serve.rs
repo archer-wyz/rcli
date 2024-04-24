@@ -61,7 +61,7 @@ async fn dir_file_handler(
 }
 
 async fn dir_file_handler_base(State(state): State<Arc<HttpServerState>>) -> impl IntoResponse {
-    let p = std::path::Path::new(&state.path).join(".");
+    let p = std::path::Path::new(&state.path).to_path_buf();
     _dir_file_handler(p, state).await
 }
 
@@ -85,7 +85,13 @@ async fn _dir_file_handler(path: PathBuf, state: Arc<HttpServerState>) -> impl I
                 loop {
                     match reader.next_entry().await {
                         Ok(Some(entry)) => {
-                            files.push(entry.file_name());
+                            let file_name = entry.file_name();
+                            let file_name = match file_name.to_str() {
+                                Some(val) => val,
+                                None => break,
+                            };
+                            let file_name = file_name.replace(".\\", "");
+                            files.push(file_name);
                         }
                         Ok(None) => break,
                         Err(e) => {
@@ -98,12 +104,14 @@ async fn _dir_file_handler(path: PathBuf, state: Arc<HttpServerState>) -> impl I
                     }
                 }
                 let mut context = Context::new();
-                let files = files
-                    .iter()
-                    .map(|f| f.to_str().unwrap())
-                    .collect::<Vec<&str>>();
                 context.insert("directory_name", path.to_str().unwrap());
                 context.insert("files", &files);
+                let last_dir = path
+                    .file_name()
+                    .map_or("self", |x| x.to_str().map_or("", |x| x));
+                let mut last_dir = last_dir.to_string();
+                last_dir.push('/');
+                context.insert("last_dir", &last_dir);
                 match state
                     .index_template
                     .render("directory_index.html", &context)
